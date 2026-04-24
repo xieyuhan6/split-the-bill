@@ -4,6 +4,7 @@ import { PeoplePanel } from "./PeoplePanel";
 import { SummaryPanel } from "./SummaryPanel";
 import { TripPanel } from "./TripPanel";
 import { CURRENCY_OPTIONS } from "../constants";
+import { getSplitBillCopy } from "../i18n";
 import { useSplitBillPageModel } from "../hooks/useSplitBillPageModel";
 
 type SplitBillPageProps = {
@@ -12,20 +13,29 @@ type SplitBillPageProps = {
 
 export function SplitBillPage(props: SplitBillPageProps) {
   const { model } = props;
+  const copy = getSplitBillCopy(model.language);
 
   return (
     <div className="page">
       <header className="hero">
-        <p className="kicker">SplitBill</p>
-        <h1>One-Time Trip Split Calculator</h1>
-        <p className="subtitle">No database, no saved records. Enter, calculate, print.</p>
+        <div className="hero-topbar">
+          <div>
+            <p className="kicker">{copy.hero.kicker}</p>
+            <h1>{copy.hero.title}</h1>
+            <p className="subtitle">{copy.hero.subtitle}</p>
+          </div>
+          <button className="secondary-button language-toggle" type="button" onClick={model.toggleLanguage}>
+            {copy.toggleLabel}
+          </button>
+        </div>
       </header>
 
       <main className="app-shell">
         <aside className="left-column">
-          <TripPanel tripName={model.tripName} setTripName={model.setTripName} />
+          <TripPanel language={model.language} tripName={model.tripName} setTripName={model.setTripName} />
 
           <PeoplePanel
+            language={model.language}
             newPersonName={model.newPersonName}
             setNewPersonName={model.setNewPersonName}
             addPerson={model.addPerson}
@@ -34,6 +44,7 @@ export function SplitBillPage(props: SplitBillPageProps) {
           />
 
           <AddExpensePanel
+            language={model.language}
             aiExpensePrompt={model.aiExpensePrompt}
             setAiExpensePrompt={model.setAiExpensePrompt}
             applyAiExpensePrompt={model.applyAiExpensePrompt}
@@ -61,6 +72,7 @@ export function SplitBillPage(props: SplitBillPageProps) {
 
         <section className="right-column">
           <SummaryPanel
+            language={model.language}
             targetCurrency={model.targetCurrency}
             setTargetCurrency={model.setTargetCurrency}
             currencyOptions={CURRENCY_OPTIONS}
@@ -80,6 +92,7 @@ export function SplitBillPage(props: SplitBillPageProps) {
           />
 
           <ExpenseDraftsPanel
+            language={model.language}
             expenses={model.expenses}
             getPersonName={model.getPersonName}
             removeExpense={model.removeExpense}

@@ -63,6 +63,14 @@ body {
   animation: rise 0.7s ease-out;
 }
 
+.hero-topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
 .kicker {
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -80,6 +88,11 @@ h1 {
 .subtitle {
   margin: 0;
   color: var(--ink-muted);
+}
+
+.language-toggle {
+  white-space: nowrap;
+  min-width: 88px;
 }
 
 .app-shell {
@@ -548,6 +561,14 @@ td {
 @media (max-width: 768px) {
   .page {
     padding: 16px 12px 28px;
+  }
+
+  .hero-topbar {
+    flex-direction: column;
+  }
+
+  .language-toggle {
+    align-self: flex-start;
   }
 
   .panel {

@@ -1,6 +1,9 @@
+import type { Language } from "../i18n";
+import { getSplitBillCopy } from "../i18n";
 import type { DraftAdjustment, Person } from "../types";
 
 type AddExpensePanelProps = {
+  language: Language;
   aiExpensePrompt: string;
   setAiExpensePrompt: (value: string) => void;
   applyAiExpensePrompt: () => void;
@@ -27,6 +30,7 @@ type AddExpensePanelProps = {
 
 export function AddExpensePanel(props: AddExpensePanelProps) {
   const {
+    language,
     aiExpensePrompt,
     setAiExpensePrompt,
     applyAiExpensePrompt,
@@ -50,28 +54,29 @@ export function AddExpensePanel(props: AddExpensePanelProps) {
     updateAdjustment,
     removeAdjustment,
   } = props;
+  const copy = getSplitBillCopy(language);
 
   return (
     <section className="panel">
-      <h2>Add Expense</h2>
+      <h2>{copy.expense.title}</h2>
       <div className="ai-helper">
-        <label>AI autofill</label>
+        <label>{copy.expense.aiLabel}</label>
         <textarea
           className="ai-helper-textarea"
           value={aiExpensePrompt}
           onChange={(e) => setAiExpensePrompt(e.target.value)}
-          placeholder="Example: I paid 240 HKD first, split among 4 people, A skipped dinner and should pay 30 less"
+          placeholder={copy.expense.aiPlaceholder}
           rows={3}
         />
         <div className="row wrap ai-helper-actions">
-          <button type="button" className="primary-button" onClick={applyAiExpensePrompt}>AI Autofill</button>
-          <button type="button" className="secondary-button" onClick={() => setAiExpensePrompt("")}>Clear</button>
-          <span className="muted ai-helper-note">Local parsing, no token usage</span>
+          <button type="button" className="primary-button" onClick={applyAiExpensePrompt}>{copy.expense.aiButton}</button>
+          <button type="button" className="secondary-button" onClick={() => setAiExpensePrompt("")}>{copy.expense.clearButton}</button>
+          <span className="muted ai-helper-note">{copy.expense.aiNote}</span>
         </div>
       </div>
       <div className="row wrap">
-        <input className="primary-field" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
-        <input className="primary-field amount-field" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount" />
+        <input className="primary-field" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={copy.expense.titlePlaceholder} />
+        <input className="primary-field amount-field" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={copy.expense.amountPlaceholder} />
         <select className="currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
           {currencyOptions.map((item) => <option key={item} value={item}>{item}</option>)}
         </select>
@@ -81,15 +86,15 @@ export function AddExpensePanel(props: AddExpensePanelProps) {
       </div>
       <div className="row wrap">
         <select className="primary-field" value={payerId} onChange={(e) => setPayerId(e.target.value)}>
-          <option value="">Choose payer</option>
+          <option value="">{copy.expense.payerPlaceholder}</option>
           {people.map((person) => (
             <option key={person.id} value={person.id}>{person.name}</option>
           ))}
         </select>
-        <button className="primary-button" onClick={addExpense}>Add Expense</button>
+        <button className="primary-button" onClick={addExpense}>{copy.expense.addExpenseButton}</button>
       </div>
 
-      <label className="participants-label">Participants</label>
+      <label className="participants-label">{copy.expense.participants}</label>
       <div className="participants-grid">
         {people.map((person) => (
           <label key={person.id} className={participantIds.includes(person.id) ? "participant-card active" : "participant-card"}>
@@ -104,8 +109,8 @@ export function AddExpensePanel(props: AddExpensePanelProps) {
       </div>
 
       <div className="row wrap adjustments-head">
-        <label>Adjustments</label>
-        <button type="button" className="secondary-button" onClick={addAdjustment}>Add Adjustment</button>
+        <label>{copy.expense.adjustments}</label>
+        <button type="button" className="secondary-button" onClick={addAdjustment}>{copy.expense.addAdjustmentButton}</button>
       </div>
       {adjustments.map((adj, index) => (
         <div key={index} className="row wrap adjustment-row">
@@ -120,7 +125,7 @@ export function AddExpensePanel(props: AddExpensePanelProps) {
             onChange={(e) => updateAdjustment(index, { deltaAmount: e.target.value })}
             placeholder="+20 or -15"
           />
-          <button type="button" className="danger" onClick={() => removeAdjustment(index)}>Remove</button>
+          <button type="button" className="danger" onClick={() => removeAdjustment(index)}>{copy.expense.removeButton}</button>
         </div>
       ))}
     </section>

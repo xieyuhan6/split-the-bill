@@ -1,9 +1,20 @@
 import { create } from "zustand";
 
+import type { Language } from "../i18n";
 import type { CalculateResponse, DraftAdjustment, ExpenseDraft, Person, RateMode } from "../types";
 import { parseAiExpensePrompt } from "../utils/aiExpenseParser";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
+const API_BASE_URL = "https://split-the-bill-hd2c.vercel.app/api/v1";
+const LANGUAGE_STORAGE_KEY = "splitbill-language";
+
+function getInitialLanguage(): Language {
+  if (typeof window === "undefined") {
+    return "en";
+  }
+
+  const storedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  return storedLanguage === "zh" ? "zh" : "en";
+}
 
 type SplitBillState = {
   tripName: string;
@@ -28,6 +39,7 @@ type SplitBillState = {
   liveRatesLoading: boolean;
   liveRatesUpdatedAt: string;
   liveRatesBase: string;
+  language: Language;
 
   result: CalculateResponse | null;
   error: string;
@@ -44,6 +56,7 @@ type SplitBillState = {
   setTargetCurrency: (value: string) => void;
   setRateMap: (updater: (prev: Record<string, string>) => Record<string, string>) => void;
   setRateMode: (value: RateMode) => void;
+  toggleLanguage: () => void;
   refreshLiveRates: () => Promise<void>;
 
   addPerson: () => void;
@@ -120,6 +133,7 @@ export const useSplitBillStore = create<SplitBillState>((set, get) => ({
   liveRatesLoading: false,
   liveRatesUpdatedAt: "",
   liveRatesBase: "",
+  language: getInitialLanguage(),
 
   result: null,
   error: "",
@@ -159,6 +173,13 @@ export const useSplitBillStore = create<SplitBillState>((set, get) => ({
   setTargetCurrency: (value) => set({ targetCurrency: value }),
   setRateMap: (updater) => set((state) => ({ rateMap: updater(state.rateMap) })),
   setRateMode: (value) => set({ rateMode: value }),
+  toggleLanguage: () => set((state) => {
+    const nextLanguage = state.language === "en" ? "zh" : "en";
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
+    }
+    return { language: nextLanguage };
+  }),
   refreshLiveRates: async () => {
     const state = get();
     const usedCurrencies = getUsedCurrencies(state.targetCurrency, state.expenses);

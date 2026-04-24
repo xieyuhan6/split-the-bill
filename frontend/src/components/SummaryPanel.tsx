@@ -1,9 +1,12 @@
 import { useEffect } from "react";
 
+import type { Language } from "../i18n";
+import { getSplitBillCopy } from "../i18n";
 import type { CalculateResponse } from "../types";
 import type { RateMode } from "../types";
 
 type SummaryPanelProps = {
+  language: Language;
   targetCurrency: string;
   setTargetCurrency: (value: string) => void;
   currencyOptions: string[];
@@ -24,6 +27,7 @@ type SummaryPanelProps = {
 
 export function SummaryPanel(props: SummaryPanelProps) {
   const {
+    language,
     targetCurrency,
     setTargetCurrency,
     currencyOptions,
@@ -41,6 +45,7 @@ export function SummaryPanel(props: SummaryPanelProps) {
     result,
     tripName,
   } = props;
+  const copy = getSplitBillCopy(language);
 
   useEffect(() => {
     if (rateMode === "realtime") {
@@ -59,24 +64,24 @@ export function SummaryPanel(props: SummaryPanelProps) {
     <section className="panel summary-panel">
       <div className="summary-header-row">
         <div>
-          <h2>Summary</h2>
-          <p className="muted">Trip: {tripName}</p>
+          <h2>{copy.summary.title}</h2>
+          <p className="muted">{copy.summary.tripLabel}: {tripName}</p>
         </div>
         <div className="row wrap">
           <select className="currency primary-field" value={targetCurrency} onChange={(e) => setTargetCurrency(e.target.value)}>
             {currencyOptions.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
-          <button className="primary-button" onClick={calculateSummary}>Calculate</button>
-          <button className="secondary-button" onClick={onPrintSummary}>Print</button>
+          <button className="primary-button" onClick={calculateSummary}>{copy.summary.calculateButton}</button>
+          <button className="secondary-button" onClick={onPrintSummary}>{copy.summary.printButton}</button>
         </div>
       </div>
 
       <div className="row wrap settlement-controls">
         <label>
-          <span>Rate mode</span>
+          <span>{copy.summary.rateMode}</span>
           <select className="secondary-field" value={rateMode} onChange={(e) => setRateMode(e.target.value as RateMode)}>
-            <option value="manual">Manual rates</option>
-            <option value="realtime">Live rates</option>
+            <option value="manual">{copy.summary.manualRates}</option>
+            <option value="realtime">{copy.summary.liveRates}</option>
           </select>
         </label>
       </div>
@@ -93,7 +98,7 @@ export function SummaryPanel(props: SummaryPanelProps) {
             </label>
           ))}
           {usedCurrencies.filter((curr) => curr !== targetCurrency).length === 0 && (
-            <p className="muted">No exchange rates needed for same-currency expenses.</p>
+            <p className="muted">{copy.summary.sameCurrencyManual}</p>
           )}
         </div>
       )}
@@ -102,10 +107,10 @@ export function SummaryPanel(props: SummaryPanelProps) {
         <div className="live-rate-summary">
           <div className="muted">
             {liveRatesLoading ? (
-              <span>Loading live rates...</span>
+              <span>{copy.summary.loadingLiveRates}</span>
             ) : (
               <span>
-                Live rates loaded from {liveRatesBase || "EUR"}{liveRatesUpdatedAt ? ` at ${liveRatesUpdatedAt}` : ""}.
+                {copy.summary.liveRatesLoaded} {liveRatesBase || "EUR"}{liveRatesUpdatedAt ? ` ${language === "zh" ? "于" : "at"} ${liveRatesUpdatedAt}` : ""}.
               </span>
             )}
           </div>
@@ -118,7 +123,7 @@ export function SummaryPanel(props: SummaryPanelProps) {
                 </div>
               ))}
               {liveRateRows.length === 0 && (
-                <div className="muted">No live exchange rates needed for same-currency expenses.</div>
+                <div className="muted">{copy.summary.sameCurrencyLive}</div>
               )}
             </div>
           )}
@@ -128,17 +133,17 @@ export function SummaryPanel(props: SummaryPanelProps) {
       {result ? (
         <div className="summary-print-area">
           <div className="print-meta">
-            <div><strong>Trip:</strong> {tripName}</div>
-            <div><strong>Generated:</strong> {new Date().toLocaleString()}</div>
+            <div><strong>{copy.summary.trip}:</strong> {tripName}</div>
+            <div><strong>{copy.summary.generated}:</strong> {new Date().toLocaleString()}</div>
           </div>
 
           <table>
             <thead>
               <tr>
-                <th>Person</th>
-                <th>Paid</th>
-                <th>Owed</th>
-                <th>Net</th>
+                <th>{copy.summary.person}</th>
+                <th>{copy.summary.paid}</th>
+                <th>{copy.summary.owed}</th>
+                <th>{copy.summary.net}</th>
               </tr>
             </thead>
             <tbody>
@@ -153,15 +158,15 @@ export function SummaryPanel(props: SummaryPanelProps) {
             </tbody>
           </table>
 
-          <h3>Transfers</h3>
+          <h3>{copy.summary.transfers}</h3>
           <ul className="list">
             {result.transfers.map((t, idx) => (
               <li key={idx}>{t.from_name} -&gt; {t.to_name}: {t.amount} {t.currency}</li>
             ))}
-            {result.transfers.length === 0 && <li className="muted">No transfers needed.</li>}
+            {result.transfers.length === 0 && <li className="muted">{copy.summary.noTransfers}</li>}
           </ul>
 
-          <h3>Expense Details</h3>
+          <h3>{copy.summary.expenseDetails}</h3>
           <ul className="list">
             {result.expense_details.map((detail, idx) => {
               return (
@@ -169,20 +174,20 @@ export function SummaryPanel(props: SummaryPanelProps) {
                   <strong>{detail.title_and_amount}</strong>
                   <div className="expense-subline">{detail.total_line}</div>
                   <div className="expense-subline">{detail.adjustment_line}</div>
-                  <div className="expense-subline">Calculation: {detail.process_line}</div>
-                  <div className="expense-subline">Shared pool split: {detail.participants_breakdown}</div>
-                  <div className="expense-subline">Final settlement:</div>
+                  <div className="expense-subline">{copy.summary.calculationLabel}: {detail.process_line}</div>
+                  <div className="expense-subline">{copy.summary.sharedPoolLabel}: {detail.participants_breakdown}</div>
+                  <div className="expense-subline">{copy.summary.finalSettlementLabel}:</div>
                   {detail.final_lines.map((line, lineIdx) => (
                     <div key={lineIdx} className="expense-subline">{line}</div>
                   ))}
                 </li>
               );
             })}
-            {result.expense_details.length === 0 && <li className="muted">No expense details.</li>}
+            {result.expense_details.length === 0 && <li className="muted">{copy.summary.noExpenseDetails}</li>}
           </ul>
         </div>
       ) : (
-        <p className="muted">Add data and click Calculate.</p>
+        <p className="muted">{copy.summary.addData}</p>
       )}
     </section>
   );
